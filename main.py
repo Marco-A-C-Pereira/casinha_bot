@@ -40,44 +40,9 @@ def extract_listings():
     listings = request_json_list()
 
     for listing in listings:
-        listing_dict = {}
-        listing_details = listing['listing']
-        is_comercial = dp.is_commercial(listing_details["title"], listing_details["description"])
-        was_updated = dp.was_updated(listing_details['id'] , listing_details['updatedAt'])
-
-        listing_dict["id"] = listing_details['id'] 
-        listing_dict["comercial"] = is_comercial
+        formatted_data = dp.exctract_listing_info(listing)
+        master_list.append(formatted_data) if formatted_data is not None else ""
         
-        if was_updated is False: continue
-        if listing_dict["comercial"] is True: 
-            master_list.append(listing_dict)
-            continue
-
-        listing_dict["title"] = listing_details['title'] 
-        listing_dict["description"] = listing_details['description'] 
-
-        listing_dict['whats'] = dp.format_phone(listing_details['whatsappNumber']) 
-        listing_dict['creation_date'] = listing_details['createdAt']
-        listing_dict['update_date'] = listing_details['updatedAt']
-        listing_dict["total_monthly_price"] = listing_details['pricingInfos'][0]['rentalInfo']['monthlyRentalTotalPrice']
-        
-        listing_dict['bedrooms'] = dp.bedrooms(listing_details)
-
-        adress_info = listing_details['address']
-        listing_dict["city"] = adress_info['city']
-        listing_dict["neighborhood"] = adress_info['neighborhood']
-        listing_dict["street"] = adress_info['street']
-        listing_dict["number"] = dp.street_number(adress_info)
-        listing_dict["geo"] = dp.maps_point(adress_info)
-        listing_dict['link'] = listing['link']['href'] 
-        listing_dict["visited"] = False
-
-        master_list.append({'listing': listing_dict})
-
-        # for i in listing_dict:
-        #     print('__________') 
-        #     print(f"{i}: {listing_dict[i]}")
-
     db.save_results_from_master_list(master_list)
 
 extract_listings()

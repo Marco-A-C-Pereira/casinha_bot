@@ -3,7 +3,13 @@ import re
 import modules.database as db
 
 def is_commercial(title, desc):
-    if "comercial" in title.lower() or desc.lower(): return True
+    is_comercial_title = "comercial" in title.lower()
+    is_comercial_desc = "comercial" in desc.lower()
+    # print("___________________")
+    # if is_comercial_title: print(title.lower())
+    # if is_comercial_desc: print(desc.lower())
+    # print("___________________")
+    if is_comercial_title or is_comercial_desc: return True
     return False
     
 def add_leading_zero(number):
@@ -40,11 +46,46 @@ def bedrooms(dict):
 def entry_exists(id):
     return db.existing_entry(id)
 
-def was_updated(id, update_date):
-    if entry_exists(id) == "0": return True #If don't exists it will grab the rest of info
+def check_was_updated(id, update_date):
+    if entry_exists(id) == 0: return True #If don't exists it will grab the rest of info
     last_updated = db.get_last_updated(id)
     match = str(update_date) == str(last_updated[0]) 
 
     return match is False #If don't match update the index, 
 
-# def exctract_listing_info(listing):
+def exctract_listing_info(listing):
+        listing_dict = {}
+        listing_details = listing['listing']
+        adress_info = listing_details['address']
+
+        is_comercial = is_commercial(listing_details["title"], listing_details["description"])
+        print(is_comercial, listing_details['id'] )
+        if is_comercial is True: 
+            comercial_dict = { 'listing' : {
+                'id': listing_details['id'],
+                'comercial': True
+                }
+            }
+            return comercial_dict
+
+        was_updated = check_was_updated(listing_details['id'] , listing_details['updatedAt'])
+        if was_updated is False: return None
+
+        listing_dict["id"] = listing_details['id'] 
+        listing_dict["comercial"] = is_comercial
+        listing_dict["title"] = listing_details['title'] 
+        listing_dict["description"] = listing_details['description'] 
+        listing_dict['whats'] = format_phone(listing_details['whatsappNumber']) 
+        listing_dict['creation_date'] = listing_details['createdAt']
+        listing_dict['update_date'] = listing_details['updatedAt']
+        listing_dict["total_monthly_price"] = listing_details['pricingInfos'][0]['rentalInfo']['monthlyRentalTotalPrice']
+        listing_dict['bedrooms'] = bedrooms(listing_details)
+        listing_dict["city"] = adress_info['city']
+        listing_dict["neighborhood"] = adress_info['neighborhood']
+        listing_dict["street"] = adress_info['street']
+        listing_dict["number"] = street_number(adress_info)
+        listing_dict["geo"] = maps_point(adress_info)
+        listing_dict['link'] = listing['link']['href'] 
+        listing_dict["visited"] = False
+        
+        return {'listing': listing_dict}
