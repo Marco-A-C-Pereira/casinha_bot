@@ -1,33 +1,33 @@
 import json
-import redis
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
 
-r = redis.Redis(decode_responses=True)
+def request_small_list():
+    f = open('storage/smallList.json', encoding="utf-8")
+    return json.load(f)
 
-print("\033c")
+def store_small_list(master_dict):
+        with open('storage/smallList.json', 'w') as f:
+            json.dump(master_dict, f)
+            print("Wrote to Json KEK")
 
-def save_results_from_master_list(master_list):
-    with r.pipeline() as pipe:
-        for listing in master_list: 
-            listing_json = json.dumps(listing)
+def request_local_list():
+    f = open('storage/localList.json', encoding="utf-8")
+    return json.load(f)
 
-            pipe.json().set(listing['listing']['id'], '$', listing)
+def store_local_list(master_dict):
+        with open('storage/localList.json', 'w') as f:
+            json.dump(master_dict, f)
+            print("Wrote to Json KEK")
 
-        pipe.execute()
+def find_index(id):
+    for index, listing in enumerate(request_local_list()):
+        if listing["id"] == id:
+            return index
+    return None
     
-    r.bgsave()
 
-def get_listings():
-    key = "2649699691"
-    with r.pipeline() as pipe:
-        pipe.json().get(key)
-        dict_resp = json.loads(pipe.execute()[0])
-        for i in dict_resp:
-            print(dict_resp[i])
-
-def existing_entry(id):
-    return r.exists(id)
-
-def get_last_updated(id):
-    return r.json().get(id, "$..update_date")
-
-# print(r.json().get("2624229581", "$..update_date"))
+def remove_from_list(index):
+    loaded_list = request_local_list()
+    del loaded_list[index]
+    store_local_list(loaded_list)

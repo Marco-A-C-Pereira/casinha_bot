@@ -1,6 +1,11 @@
 from datetime import datetime
+import pprint
 import re
 import modules.database as db
+import modules.requests as rq
+from bs4 import BeautifulSoup
+
+pp = pprint.PrettyPrinter(indent=4)
 
 def is_commercial(title, desc):
     is_comercial_title = "comercial" in title.lower()
@@ -44,35 +49,35 @@ def bedrooms(dict):
    return dict['bedrooms'][0] if len(dict['bedrooms']) != 0 else 0
 
 def entry_exists(id):
-    return db.existing_entry(id)
+        return list(filter(lambda local_listing: local_listing['id'] == id,db.request_local_list())) #Operação custosa
 
 def check_was_updated(id, update_date):
-    if entry_exists(id) == 0: return True #If don't exists it will grab the rest of info
-    last_updated = db.get_last_updated(id)
-    match = str(update_date) == str(last_updated[0]) 
+    match = entry_exists(id) 
+    if len(match) == 0: return True
+    
+    does_match = update_date == match[0]['updatedAt']
+    return match is False #If don't match update the index,
 
-    return match is False #If don't match update the index, 
+
+    # if entry_exists(id) == 0: return True #If don't exists it will grab the rest of info
+    # last_updated = db.get_last_updated(id)
+    # match = str(update_date) == str(last_updated[0]) 
+
+    # return match is False #If don't match update the index, 
 
 def exctract_listing_info(listing):
         listing_dict = {}
         listing_details = listing['listing']
         adress_info = listing_details['address']
+        BASE_URL = "zapimoveis.com.br"
 
-        is_comercial = is_commercial(listing_details["title"], listing_details["description"])
-        print(is_comercial, listing_details['id'] )
-        if is_comercial is True: 
-            comercial_dict = { 'listing' : {
-                'id': listing_details['id'],
-                'comercial': True
-                }
-            }
-            return comercial_dict
+        if is_commercial(listing_details["title"], listing_details["description"]) is True: return None
+        if len(entry_exists(listing_details['id'])) != 0:
+            db.remove_from_list(db.find_index(listing_details['id'])) 
 
-        was_updated = check_was_updated(listing_details['id'] , listing_details['updatedAt'])
-        if was_updated is False: return None
+        # Solução mais elegante com Pandas ? Dataframe Filter ? 
 
         listing_dict["id"] = listing_details['id'] 
-        listing_dict["comercial"] = is_comercial
         listing_dict["title"] = listing_details['title'] 
         listing_dict["description"] = listing_details['description'] 
         listing_dict['whats'] = format_phone(listing_details['whatsappNumber']) 
@@ -85,7 +90,17 @@ def exctract_listing_info(listing):
         listing_dict["street"] = adress_info['street']
         listing_dict["number"] = street_number(adress_info)
         listing_dict["geo"] = maps_point(adress_info)
-        listing_dict['link'] = listing['link']['href'] 
+        listing_dict['link'] = BASE_URL+listing['link']['href'] 
         listing_dict["visited"] = False
         
-        return {'listing': listing_dict}
+        return listing_dict
+
+def extract_images(id, url):
+    raw = rq.request_listing_page(url)
+    page = BeautifulSoup(raw.text, "html.parser")
+    carousel_container = page.select("#listing-carousel")[0]
+    carousel_items = carousel_container.find('img')
+    pp.pprint(carousel_items)
+    # if carousel_items:
+    #     for item in carousel_items:
+    #         img_url = item['']
