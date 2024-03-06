@@ -1,6 +1,7 @@
 from datetime import datetime
 import pprint
 import re
+from pathlib import Path
 import shutil
 
 import requests
@@ -87,9 +88,13 @@ def extract_images(id, url):
     carousel_items = carousel_container.find_all('img')
 
     incrementer = 0
+    path = f"storage/images/{id}"
+    Path(path).mkdir(parents=True, exist_ok=True)
+
     for item in carousel_items[:3]:
         raw_img_url = item['srcset']
         formatted_url = raw_img_url.split("'")[0].split(" ")[0]
 
-        with open (f"storage/images/{id}", 'wb') as f:
+        incrementer += 1
+        with open (f"{path}/{incrementer}.jpg", 'wb') as f:
             f.write(requests.get(formatted_url).content)

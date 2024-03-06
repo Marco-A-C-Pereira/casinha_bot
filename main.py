@@ -14,16 +14,20 @@ def extract_listings():
     pagination = 0
     search_results = rq.request_list(pagination)['search']['result']['listings']
 
-    for listing in search_results[1:]:
-        formatted_data = dp.exctract_listing_info(listing)
-        if formatted_data is not None:
-            # pp.pprint(formatted_data['title'] + formatted_data['update_date'])
-            master_list.append(formatted_data)
-            dp.extract_images(formatted_data['id'], formatted_data['link'])
+    
+    for listing in search_results:
+        try:
+            formatted_data = dp.exctract_listing_info(listing)
+            if formatted_data is not None:
+                # pp.pprint(formatted_data['title'] + formatted_data['update_date'])
+                master_list.append(formatted_data)
+                dp.extract_images(formatted_data['id'], formatted_data['link'])
+        except Exception as e: print(e)
 
     db.store_local_list(master_list)
 
 def MAIN():
     extract_listings()
+    print("Finished ruinning")
 
-MAIN()
+MAIN()  
