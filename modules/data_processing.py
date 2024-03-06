@@ -11,10 +11,18 @@ from bs4 import BeautifulSoup
 
 pp = pprint.PrettyPrinter(indent=4)
 
-def is_commercial(title, desc):
-    is_comercial_title = "comercial" in title.lower()
-    is_comercial_desc = "comercial" in desc.lower()
-    if is_comercial_title or is_comercial_desc: return True
+def is_commercial(title, desc, link):
+    banned_words = ["comercial", "loja"]
+
+    for text in [title, desc, link]:
+        if any(banned_word in text.lower() for banned_word in banned_words):
+            # print(f"MATCH ! {text}")
+            return True
+
+    # is_comercial_title = "comercial" in title.lower()
+    # is_comercial_desc = "comercial" in desc.lower()
+    # is_comercial_link = "comercial" in link.lower()
+    # if is_comercial_title or is_comercial_desc or is_comercial_link: return True
     return False
     
 def add_leading_zero(number):
@@ -57,7 +65,7 @@ def exctract_listing_info(listing):
         adress_info = listing_details['address']
         BASE_URL = "https://www.zapimoveis.com.br"
 
-        if is_commercial(listing_details["title"], listing_details["description"]) is True: return None
+        if is_commercial(listing_details["title"], listing_details["description"],listing['link']['href']) is True: return None
         if len(entry_exists(listing_details['id'])) != 0:
             db.remove_from_list(db.find_index(listing_details['id'])) 
 

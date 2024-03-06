@@ -3,6 +3,7 @@ import pprint
 import modules.data_processing as dp
 import modules.database as db
 import modules.requests as rq
+import modules.telegram_bot.bot_main as tele_bot
 
 print("\033c")
 
@@ -27,7 +28,8 @@ def extract_listings():
     db.store_local_list(master_list)
 
 def MAIN():
-    extract_listings()
+    # extract_listings()
+    tele_bot.main()
     print("Finished ruinning")
 
 MAIN()  
