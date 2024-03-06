@@ -34,12 +34,23 @@ def message_builder(listing):
 """
     return message
 
+def media_converter(url_list):
+    media_photo_list = []
+
+    for item in url_list:
+        media_photo_list.append(telegram.InputMediaPhoto(media=item))
+
+    return media_photo_list
+
 async def core():
     smallList = db.request_local_list()
     bot = telegram.Bot(tokens.telegram_bot_token)
     async with bot:
-        for listing in smallList[:3]:
-            await bot.sendMessage(text=message_builder(listing), parse_mode="markdown", chat_id=tokens.valid_users[0])
+        for listing in smallList[:2]:
+            media_list = media_converter(listing["images_url"])
+
+            await bot.send_media_group(caption=message_builder(listing), media=media_list ,parse_mode="markdown", chat_id=tokens.valid_users[0])
+            # await bot.sendMessage(text=message_builder(listing), parse_mode="markdown", chat_id=tokens.valid_users[0])
 
 # async def core():
 #     bot = telegram.Bot(tokens.telegram_bot_token)

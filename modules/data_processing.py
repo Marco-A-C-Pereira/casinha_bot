@@ -64,6 +64,7 @@ def exctract_listing_info(listing):
         listing_details = listing['listing']
         adress_info = listing_details['address']
         BASE_URL = "https://www.zapimoveis.com.br"
+        FULL_LINK = BASE_URL+listing['link']['href']
 
         if is_commercial(listing_details["title"], listing_details["description"],listing['link']['href']) is True: return None
         if len(entry_exists(listing_details['id'])) != 0:
@@ -85,24 +86,21 @@ def exctract_listing_info(listing):
         listing_dict["number"] = street_number(adress_info)
         listing_dict["geo"] = maps_point(adress_info)
         listing_dict['link'] = BASE_URL+listing['link']['href'] 
+        listing_dict['images_url'] = extract_images(FULL_LINK)
         listing_dict["visited"] = False
         
         return listing_dict
 
-def extract_images(id, url):
+def extract_images(url):
+    link_list = []
     raw = rq.request_listing_page(url)
     page = BeautifulSoup(raw.text, "html.parser")
     carousel_container = page.select("#listing-carousel")[0]
     carousel_items = carousel_container.find_all('img')
 
-    incrementer = 0
-    path = f"storage/images/{id}"
-    Path(path).mkdir(parents=True, exist_ok=True)
-
     for item in carousel_items[:3]:
         raw_img_url = item['srcset']
         formatted_url = raw_img_url.split("'")[0].split(" ")[0]
+        link_list.append(formatted_url)
 
-        incrementer += 1
-        with open (f"{path}/{incrementer}.jpg", 'wb') as f:
-            f.write(requests.get(formatted_url).content)
+    return link_list

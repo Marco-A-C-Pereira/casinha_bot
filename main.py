@@ -22,7 +22,6 @@ def extract_listings():
             if formatted_data is not None:
                 # pp.pprint(formatted_data['title'] + formatted_data['update_date'])
                 master_list.append(formatted_data)
-                dp.extract_images(formatted_data['id'], formatted_data['link'])
         except Exception as e: print(e)
 
     db.store_local_list(master_list)
