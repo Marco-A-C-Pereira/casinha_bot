@@ -7,18 +7,18 @@ def request_small_list():
     return json.load(f)
 
 def store_small_list(master_dict):
+        print("There are ", len(master_dict), " new entries in the temp list")
         with open('storage/smallList.json', 'w') as f:
             json.dump(master_dict, f)
-            print("Wrote to Json KEK")
 
 def request_local_list():
     f = open('storage/localList.json', encoding="utf-8")
     return json.load(f)
 
 def store_local_list(master_dict):
+        print("There are ", len(master_dict), " new entries in the local list")
         with open('storage/localList.json', 'w') as f:
             json.dump(master_dict, f)
-            print("Wrote to Json KEK")
 
 def find_index(id):
     for index, listing in enumerate(request_local_list()):
@@ -30,4 +30,4 @@ def find_index(id):
 def remove_from_list(index):
     loaded_list = request_local_list()
     del loaded_list[index]
-    store_local_list(loaded_list)
+    store_local_list(loaded_list) # O vilão aqui !!

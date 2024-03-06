@@ -1,6 +1,9 @@
 from datetime import datetime
 import pprint
 import re
+import shutil
+
+import requests
 import modules.database as db
 import modules.requests as rq
 from bs4 import BeautifulSoup
@@ -10,10 +13,6 @@ pp = pprint.PrettyPrinter(indent=4)
 def is_commercial(title, desc):
     is_comercial_title = "comercial" in title.lower()
     is_comercial_desc = "comercial" in desc.lower()
-    # print("___________________")
-    # if is_comercial_title: print(title.lower())
-    # if is_comercial_desc: print(desc.lower())
-    # print("___________________")
     if is_comercial_title or is_comercial_desc: return True
     return False
     
@@ -51,25 +50,11 @@ def bedrooms(dict):
 def entry_exists(id):
         return list(filter(lambda local_listing: local_listing['id'] == id,db.request_local_list())) #Operação custosa
 
-def check_was_updated(id, update_date):
-    match = entry_exists(id) 
-    if len(match) == 0: return True
-    
-    does_match = update_date == match[0]['updatedAt']
-    return match is False #If don't match update the index,
-
-
-    # if entry_exists(id) == 0: return True #If don't exists it will grab the rest of info
-    # last_updated = db.get_last_updated(id)
-    # match = str(update_date) == str(last_updated[0]) 
-
-    # return match is False #If don't match update the index, 
-
 def exctract_listing_info(listing):
         listing_dict = {}
         listing_details = listing['listing']
         adress_info = listing_details['address']
-        BASE_URL = "zapimoveis.com.br"
+        BASE_URL = "https://www.zapimoveis.com.br"
 
         if is_commercial(listing_details["title"], listing_details["description"]) is True: return None
         if len(entry_exists(listing_details['id'])) != 0:
@@ -99,8 +84,12 @@ def extract_images(id, url):
     raw = rq.request_listing_page(url)
     page = BeautifulSoup(raw.text, "html.parser")
     carousel_container = page.select("#listing-carousel")[0]
-    carousel_items = carousel_container.find('img')
-    pp.pprint(carousel_items)
-    # if carousel_items:
-    #     for item in carousel_items:
-    #         img_url = item['']
+    carousel_items = carousel_container.find_all('img')
+
+    incrementer = 0
+    for item in carousel_items[:3]:
+        raw_img_url = item['srcset']
+        formatted_url = raw_img_url.split("'")[0].split(" ")[0]
+
+        with open (f"storage/images/{id}", 'wb') as f:
+            f.write(requests.get(formatted_url).content)
