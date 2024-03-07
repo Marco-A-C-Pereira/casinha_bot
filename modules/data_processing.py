@@ -87,7 +87,6 @@ def exctract_listing_info(listing):
         listing_dict["geo"] = maps_point(adress_info)
         listing_dict['link'] = BASE_URL+listing['link']['href'] 
         listing_dict['images_url'] = extract_images(FULL_LINK)
-        listing_dict["visited"] = False
         
         return listing_dict
 

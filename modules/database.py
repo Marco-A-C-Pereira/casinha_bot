@@ -17,8 +17,10 @@ def request_local_list():
 
 def store_local_list(master_dict):
         print("There are ", len(master_dict), " new entries in the local list")
+        local_list = request_local_list()
+        combined_list = local_list + [listing for listing in master_dict if listing not in local_list]
         with open('storage/localList.json', 'w') as f:
-            json.dump(master_dict, f)
+            json.dump(combined_list, f)
 
 def find_index(id):
     for index, listing in enumerate(request_local_list()):

@@ -14,7 +14,23 @@ def description_fixer(text):
         if target in text: newtext = newtext.replace(target, " ")
 
     newtext = newtext.lower()
-    return newtext.title()
+    newtext = newtext.split()
+    newtext[-1] = "..."
+    newtext = " ".join(newtext)
+    
+    test = newtext
+    print(test)
+
+    return test.title()
+
+def whatsapp_generator(number):
+    if "None" in number: return "Olhar no link"
+    treted_number = number
+    for target in ["+", "-", "(", ")", " "]:
+        if target in number: treted_number = treted_number.replace(target, "")
+    
+    return f"[Converse com o explorador](https://wa.me/55{treted_number})"
+    
 
 def message_builder(listing):
     character_number = 250 
@@ -28,7 +44,7 @@ def message_builder(listing):
 🔎 {description_fixer(listing["description"])[:character_number]}
 
 🔗 [Acesse aqui o imóvel, bicha]({listing["link"]})
-⚡️ Telefone: {listing['whats']}
+⚡️ 📞 {whatsapp_generator(listing['whats'])}
 🕑 Atualizado / Criado:
 {time_converter(listing["update_date"])} | {time_converter(listing["creation_date"])}
 """
