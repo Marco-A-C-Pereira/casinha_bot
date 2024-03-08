@@ -5,7 +5,7 @@ import modules.database as db
 from datetime import datetime
 
 def time_converter(ISO8601):
-    date_object = datetime.strptime(ISO8601, "%Y-%m-%dT%H:%M:%S.%fZ")
+    date_object = datetime.strptime(ISO8601, "%Y-%m-%dT%H:%M:%S.%f%z").replace(tzinfo=None)
     return date_object.strftime("%d/%m/%Y")
 
 def description_fixer(text):

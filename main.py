@@ -1,6 +1,5 @@
 import math
 import pprint
-import time
 
 import modules.data_processing as dp
 import modules.database as db
@@ -26,48 +25,52 @@ def time_calculations(entry_date):
 
     return math.ceil(total_hours)
 
-def continue_pagination(last_result):
-    if "title" not in last_result: return True
-    
-    if time_calculations(last_result["updatedAt"]) >= 24: return False
-    local_list = db.request_local_list()
-    if len(local_list) > 0:
-        for local_item in local_list:
-            if local_item["update_date"] == last_result["updatedAt"]: return False
+def continue_pagination(last_results, page_number):
+    try:
+        if page_number == 0: return True  # noqa: E701
+        if len(last_results) < 15: return False  # noqa: E701
 
-    return True    
+        older_than_day = time_calculations(last_results[-1]["updatedAt"]) >= 24 
+        if older_than_day: return False  # noqa: E701
+
+        local_list = db.request_local_list()
+        if len(local_list) > 0:
+            for local_item in local_list:
+                if local_item["update_date"] == last_results[-1]["updatedAt"]: return False  # noqa: E701
+
+        return True    
+    except Exception as e: 
+        print(f"Error in the continue pagination: {e}")  # noqa: E701
+        return False
+
 
 def extract_listings():
     pagination = 0
-    last_result = {}
-    should_paginate = continue_pagination(last_result) 
-    print(continue_pagination(last_result))
+    last_results = []
 
-    while(should_paginate is True):
+    while(continue_pagination(last_results, pagination) is True):
         search_results = rq.request_list(pagination)['search']['result']['listings']
-
         print(f"page: {pagination} {len(search_results)} results")
-        if len(search_results) != 0:
-            last_result = search_results[-1]
-            pagination = pagination + 1
 
-            # Ultimo search_result bate com o mais recente locallist ? (data de update) ou é maior que 24h no formato iso 
+        if len(search_results) != 0:
+            last_results = search_results
+            pagination = pagination + 1
 
             for listing in search_results:
                 try:
                     formatted_data = dp.exctract_listing_info(listing)
-                    if formatted_data is not None:
-                        # pp.pprint(formatted_data['title'] + formatted_data['update_date'])
-                        master_list.append(formatted_data)
-                except Exception as e: print(e)
+                    if formatted_data is not None: master_list.append(formatted_data)  # noqa: E701
+                
+                except Exception as e: 
+                    if e == "429": return # noqa: E701
+                    print(f"Error in the data extracting phase {e}")  
 
     db.store_local_list(master_list)
 
 
 
 def MAIN():
-    extract_listings()
-    db.store_local_list(master_list)
+    # extract_listings()
     tele_bot.main()
     print("Finished ruinning")
 

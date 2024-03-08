@@ -1,8 +1,6 @@
-import time
 import requests
 from fake_useragent import UserAgent
 import json
-from bs4 import BeautifulSoup
 
 
 UA = UserAgent().random
@@ -23,6 +21,9 @@ def request_json_list():
 
 def request_listing_page(url):
     response = SESSION.get(url, headers=request_header)
+    if response.status_code != 200: raise ValueError(429)  # noqa: E701
+
+
     return response
     # print(f"Status code {response.status_code} Retrying .... ")
     # time.sleep(10)

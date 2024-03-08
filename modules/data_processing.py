@@ -1,10 +1,7 @@
 from datetime import datetime
 import pprint
 import re
-from pathlib import Path
-import shutil
 
-import requests
 import modules.database as db
 import modules.requests as rq
 from bs4 import BeautifulSoup
@@ -44,7 +41,7 @@ def format_phone(whats):
     is_zero = len(whats) == 0
     is_repeated = all(number == whats[0] for number in whats)
 
-    if is_zero or is_repeated: return "None"
+    if is_zero or is_repeated: return "None"  # noqa: E701
     return re.sub(r'(\d{2})(\d{4})(\d{4})', r'(\1) \2-\3', whats)
 
 def street_number(dict):
@@ -66,7 +63,7 @@ def exctract_listing_info(listing):
         BASE_URL = "https://www.zapimoveis.com.br"
         FULL_LINK = BASE_URL+listing['link']['href']
 
-        if is_commercial(listing_details["title"], listing_details["description"],listing['link']['href']) is True: return None
+        if is_commercial(listing_details["title"], listing_details["description"],listing['link']['href']) is True: return None  # noqa: E701
         if len(entry_exists(listing_details['id'])) != 0:
             db.remove_from_list(db.find_index(listing_details['id'])) 
 

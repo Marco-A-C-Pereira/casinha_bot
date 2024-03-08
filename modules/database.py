@@ -32,4 +32,4 @@ def find_index(id):
 def remove_from_list(index):
     loaded_list = request_local_list()
     del loaded_list[index]
-    store_local_list(loaded_list) # O vilão aqui !!
+    store_local_list(loaded_list) 
